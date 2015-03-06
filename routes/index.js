@@ -33,7 +33,7 @@ router.get("/getfish", function(req, res, next) {
 	*/
 
 	//just use this for now
-	res.send("floppity flop");
+	res.end("floppity flop");
 })
 
 
