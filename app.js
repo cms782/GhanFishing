@@ -4,11 +4,30 @@ var favicon = require('serve-favicon');
 var logger = require('morgan');
 var cookieParser = require('cookie-parser');
 var bodyParser = require('body-parser');
-
+//var mongoose = require('mongoose');
+var fs = require('fs')
 var routes = require('./routes/index');
 var users = require('./routes/users');
 
+//create expresss app
 var app = express();
+
+//CONNECT TO MYSQL DATABASE
+var mysql = require('mysql');
+var connection = mysql.createConnection({
+  host: 'localhost',
+  user: 'root',
+  password: 'Nyala1027',
+  database: 'ghanfishing'
+})
+connection.connect(function(err) {
+  if (err) {
+    console.error('error connecting: ' + err.stack);
+    process.exit(code=1);
+  }
+  console.log("thread:"+connection.threadId);
+});
+
 
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
@@ -25,6 +44,12 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 app.use('/', routes);
 app.use('/users', users);
+
+//load all files in models directory
+fs.readdirSync(__dirname + '/models').forEach(function(filename) {
+  if (~filename.indexOf('.js')) require(__dirname + '/models/' + filename);
+})
+
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {

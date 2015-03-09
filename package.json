@@ -12,7 +12,9 @@
     "express": "~4.12.0",
     "hbs": "~2.8.0",
     "less-middleware": "1.0.x",
+    "mongoose": "^3.8.24",
     "morgan": "~1.5.1",
+    "mysql": "^2.5.5",
     "serve-favicon": "~2.2.0"
   }
 }
