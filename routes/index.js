@@ -11,12 +11,20 @@ var connection = mysql.createConnection({
 })
 connection.connect(function(err) {
   if (err) {
-    console.error('error connecting: ' + err.stack);
+    console.error('error connecting - poop: ' + err.stack);
     process.exit(code=1);
+    return;
   }
   console.log("thread:"+connection.threadId);
+
+  connection.on("error", function(err) {
+  	res.status(100).send("idk something went wrong connecting to db");
+  	return;
+  });
+
 });
 ////////////////////END CONNECT DATABASE//////////////////////
+
 
 
 
@@ -31,12 +39,12 @@ router.get('/', function(req, res, next) {
 
 
 
+
 //////////////////////////HANDLE /getfish REQUESTS//////////////////////////
 router.get("/getfish", function(req, res, next) {
 
-	"\
-	FOR POST REQUESTS USE param = req.body.<parameter>\
-	"
+	//FOR POST REQUESTS USE param = req.body.<parameter>
+
 
 	response = {};
 	//content-type = json/application
@@ -45,7 +53,7 @@ router.get("/getfish", function(req, res, next) {
 
 
 
-	//ERROR CHECK
+	//////////////////////////////ERROR CHECK//////////////////////////////////
 	if (!req.query.senderMobile||!req.query.senderName||!req.query.msgdatetime
 		||!req.query.message) {
 
@@ -53,6 +61,8 @@ router.get("/getfish", function(req, res, next) {
 		res.status(400).send("Bad Request");
 		return;
 	}
+	////////////////////////////END ERROR CHECK////////////////////////////////
+
 
 
 	////////////////////////////PARSE MESSAGE///////////////////////////////////
@@ -65,7 +75,7 @@ router.get("/getfish", function(req, res, next) {
 
 
 
-	////////////////////ADD REQUEST MESSAGE TO MYSQL DB///////////////////////////////////////
+	////////////////////////LOG ALL MESSAGES TO MYSQL DB//////////////////////////////////////
 	var sql = "INSERT INTO messages (senderMobile, senderName, msgdatetime, message, userKey)\
 	VALUES (\""+senderMobile+"\", \""+senderName+"\", \""+msgdatetime+
 	"\", \""+req.query.message+"\", \""+userKey+"\")";
@@ -80,7 +90,8 @@ router.get("/getfish", function(req, res, next) {
 			console.log("successfully inserted record!");
 		}
 	});
-	/////////////////////////////////////////////////////////////////////////////////////////
+	connection.end();
+	////////////////////////////////END LOG MESSAGES//////////////////////////////////////////
 
 
 
@@ -144,6 +155,7 @@ router.get("/getfish", function(req, res, next) {
 				res.send()
 			}
 		});
+		connection.end();
 
 		//////////////////////////END MYSQL DB///////////////////////////////////////
 
@@ -154,7 +166,7 @@ router.get("/getfish", function(req, res, next) {
 	}
 	/////////////////////////END NEW USER REQUEST//////////////////////////////////////
 
-
+	//CHANGE THIS ... shouldn't be sql
 	res.send(sql);
 
 
@@ -182,6 +194,7 @@ router.get("/getfish", function(req, res, next) {
 })
 
 
+/////////////////////////////HELPER FUNCTIONS//////////////////////////////////////
 function zeropad(num) {
 	if (num<10) {
 		return ("0"+num.toString());

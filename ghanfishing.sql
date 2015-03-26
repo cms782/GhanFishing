@@ -25,6 +25,9 @@ PRIMARY KEY (userID)
 
 #ALTER TABLE fishmsg CHANGE msgdate msgdatetime DATE;
 
+INSERT INTO messages(senderMobile,senderName,msgdatetime,message,userKey)
+VALUES ("18057292585","Casey Slaught","2015-12-25 12:45:59","price 
+
 INSERT INTO users (userKey,userName,userMobile,dateJoined)
 VALUES ("fishy","Casey Slaught","18057292585","2015-03-05 12:12:12");
 
