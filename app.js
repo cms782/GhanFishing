@@ -4,15 +4,21 @@ var favicon = require('serve-favicon');
 var logger = require('morgan');
 var cookieParser = require('cookie-parser');
 var bodyParser = require('body-parser');
-//var mongoose = require('mongoose');
 var fs = require('fs')
+
 var routes = require('./routes/index');
 var users = require('./routes/users');
 
 //create expresss app
 var app = express();
-console.log(app)
+var server = app.listen(3000, function () {
 
+  var host = server.address().address
+  var port = server.address().port
+
+  console.log('Example app listening at http://%s:%s', host, port)
+
+})
 
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));

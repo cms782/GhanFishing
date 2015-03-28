@@ -1,4 +1,5 @@
 var express = require('express');
+var http = require("http");
 var router = express.Router();
 
 ////////////////////CONNECT TO MYSQL DATABASE////////////////////
@@ -8,10 +9,10 @@ var connection = mysql.createConnection({
   user: 'root',
   password: 'Nyala1027',
   database: 'ghanfishing'
-})
+});
 connection.connect(function(err) {
   if (err) {
-    console.error('error connecting - poop: ' + err.stack);
+    console.error('error connecting - poop...\n' + err.stack);
     process.exit(code=1);
     return;
   }
@@ -21,22 +22,39 @@ connection.connect(function(err) {
   	res.status(100).send("idk something went wrong connecting to db");
   	return;
   });
-
 });
-////////////////////END CONNECT DATABASE//////////////////////
+/////////////////////END CONNECT DATABASE///////////////////////
 
 
 
 
-////////////////////////GET HOME PAGE//////////////////////////
+////////////////////////GET WEB PAGE REQUEST//////////////////////////
 router.get('/', function(req, res, next) {
   res.render('index', 
   	{ title: 'Express',
-  	  subtitle:'Casey' });
+  	  subtitle:'idkidk' });
 });
-////////////////////////END HOME PAGE//////////////////////////
-
-
+router.get('/about',function(req,res,next) {
+	res.render('about', {
+		title: 'About',
+	});
+});
+router.get('/history',function(req,res,next) {
+	res.render('history', {
+		title: 'History',
+	});
+});
+router.get('/project',function(req,res,next) {
+	res.render('project', {
+		title: 'Project',
+	});
+});
+router.get('/results',function(req,res,next) {
+	res.render('results', {
+		title: 'Results',
+	});
+});
+//END
 
 
 
@@ -44,14 +62,6 @@ router.get('/', function(req, res, next) {
 router.get("/getfish", function(req, res, next) {
 
 	//FOR POST REQUESTS USE param = req.body.<parameter>
-
-
-	response = {};
-	//content-type = json/application
-	//POST request
-
-
-
 
 	//////////////////////////////ERROR CHECK//////////////////////////////////
 	if (!req.query.senderMobile||!req.query.senderName||!req.query.msgdatetime
@@ -63,68 +73,72 @@ router.get("/getfish", function(req, res, next) {
 	}
 	////////////////////////////END ERROR CHECK////////////////////////////////
 
-
-
 	////////////////////////////PARSE MESSAGE///////////////////////////////////
 	var message_arr = (req.query.message).split(" "); //parses %20 automatically
-	var req_type = message_arr[0]; //'price' or 'addme'
+	var req_type = message_arr[0];
 	var senderMobile = req.query.senderMobile;
 	var senderName = req.query.senderName;
 	var msgdatetime = req.query.msgdatetime;
 	////////////////////////////////////////////////////////////////////////////
-
-
 
 	////////////////////////LOG ALL MESSAGES TO MYSQL DB//////////////////////////////////////
 	var sql = "INSERT INTO messages (senderMobile, senderName, msgdatetime, message, userKey)\
 	VALUES (\""+senderMobile+"\", \""+senderName+"\", \""+msgdatetime+
 	"\", \""+req.query.message+"\", \""+userKey+"\")";
 
-	connection.query(sql, function(err) {
-		if (err) {
-			console.log("could not insert record");
-			console.log(err.code);
-			res.status(500).send("idk what happened, could not insert record");
-		}
-		else {
-			console.log("successfully inserted record!");
-		}
-	});
-	connection.end();
-	////////////////////////////////END LOG MESSAGES//////////////////////////////////////////
+	sqlquery(sql);
 
+	//Handle req_type 'idk' ...change this
+	if (req_type.match( /idk/gi)) {
+		console.log("ADD FUNCTIONALITY HERE");
+		var thedate = getDateTime();
 
-
-	////////////////////////////HANDLE PRICE REQUEST/////////////////////////////////////////
-	if (req_type.match( /price/gi)) {
-		console.log("GET PRICE");
-
-		var userKey = message_arr[1]
-		var action = message_arr[2]; //BID/ASK
-		var fishtype = message_arr[3];//Tilapia/bass idk?
-
-	/////////////////////////////////VALIDATE USER///////////////////////////////////////////
-
-	/////////////////////////////////END VALIDATE///////////////////////////////////////////
-
-
-
+		////////////////////////////////////////////////////
+		////////////////////////////////////////////////////
+		//////////////ADD FUNCTIONALITY HERE////////////////
+		////////////////////////////////////////////////////
+		////////////////////////////////////////////////////
 
 
 	}
-	////////////////////////END PRICE REQUEST////////////////////////////////////////////
 
 
 
 
 
-	/////////////////////////HANDLE NEW USER REQUEST//////////////////////////////////////
-	else if (req_type.match( /addme/gi)) {
-		console.log("ADD USER");
+	//CHANGE THIS ... 
+	res.send("sup");
 
-		//userId 
-		var userKey = "fishy";
-			///////////////////////////CREATE DATETIME STRING//////////////////////
+})
+
+
+
+
+
+///////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////HELPER FUNCTIONS//////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////
+
+// make sql query with sql string
+function sqlQuery(sql) {
+	connection.query(sql, function(err) {
+	if (err) {
+		console.log("could not insert record");
+		console.log(err.code);
+		res.status(500).send("idk what happened, could not insert record");
+	}
+	else {
+		console.log("successfully inserted record!");
+	}
+	});
+	connection.end();
+
+}
+
+function getDateTime() {
+		///////////////////////////CREATE DATETIME STRING//////////////////////
 		var d = new Date();
 		var dateJoined = "YYYY-MM-DD HH:MM:SS"
 		var year = d.getFullYear().toString();
@@ -134,67 +148,55 @@ router.get("/getfish", function(req, res, next) {
 		var minutes = zeropad(d.getMinutes());
 		var seconds = zeropad(d.getSeconds());
 		dateJoined = year+"-"+month+"-"+day+" "+hours+":"+minutes+":"+seconds
-			///////////////////////////END DATETIME STRING////////////////////////
-		//senderName = userName
-		//senderMobile = userMobile
-		//dateJoined
+		return dateJoined;
+		///////////////////////////END DATETIME STRING////////////////////////
+}
 
-		////////////////////ADD REQUEST TO MYSQL DB///////////////////////////////////
-		var sql = "INSERT INTO users (userKey, userName, userMobile, dateJoined)\
-		VALUES (\""+userKey+"\", \""+senderName+"\", \""+senderMobile+
-		"\", \""+dateJoined+"\")";
 
-		connection.query(sql, function(err) {
-			if (err) {
-				console.log("could not insert record");
-				console.log(err.code);
-				res.status(500).send("idk what happened, could not insert record");
-			}
-			else {
-				console.log("successfully added new user!");
-				res.send()
-			}
+//makes SMS post request to FrontlineSMS
+//return JSON repsonse object
+function sendSMS(message,number) {
+	var jsonrequest = {
+		secret:"secrets_are_no_fun",
+		message:message,
+		recipients:[{type:"address",value:number}]
+	};
+	var stringrequest = JSON.stringify(jsonrequest);
+	// An object of options to indicate where to post to
+	var post_options = {
+	  host: 'frontlinesms.com',
+	  path: '/idk',
+	  method: 'POST',
+	  headers: {
+	      'Content-Type': 'application/json',
+	      'Content-Length': stringrequest.length
+	  }
+	};
+	// Set up the request
+	var post_req = http.request(post_options, function(res) {
+		res.setEncoding('utf8');
+		var responseString = '';
+
+		res.on('data', function (data) {
+	  	responseString+=data;
 		});
-		connection.end();
 
-		//////////////////////////END MYSQL DB///////////////////////////////////////
+		res.on('end',function() {
+	  	var responseobj = JSON.parse(responseString)
+		});
 
-
-
-
-
-	}
-	/////////////////////////END NEW USER REQUEST//////////////////////////////////////
-
-	//CHANGE THIS ... shouldn't be sql
-	res.send(sql);
-
-
-
-	/*
-	1) get secret key (maybe a work that can be easily memorized??)
-	2) get rest of message: "buy/sell <type of fish> amount(kg) price"
-	3) lookup key to see if its valid
-	4) if not valid -- respond with "key not valid"
-	5) run matching algorithm to get 5-10 matching bid/ask
-		-- "buy/sell <type of fish> amount(kg) price location phone#"
-	6) return message (res.end(message)) ?? 
-		- return message payload should be JSON
-			-includes:
-				1) API secret //can probably be left out
-				2) message //try to limit < 160 chars, 
-				3) recipients //array of entities ('type':value)
-					- probably recipient:[{"type":"address", "value":"+1234567890"}]
-
-	7) handle responses
-	*/
-
-	//just use this for now
-	//res.send("floppity flop");
-})
+		res.on('error', function(err) {
+			console.error("uh-oh...\n" + err);
+			return null;
+		});
+	});
+	// post the data
+	post_req.write(stringrequest);
+	post_req.end();
+	return responseobj;
+}
 
 
-/////////////////////////////HELPER FUNCTIONS//////////////////////////////////////
 function zeropad(num) {
 	if (num<10) {
 		return ("0"+num.toString());
